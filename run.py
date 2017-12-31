@@ -1,8 +1,9 @@
 import tensorflow as tf
 import os
-from utils import label_map_util
 from PIL import Image
 import numpy as np
+import label_map_util
+import utils
 
 def load_image_into_numpy_array(image):
     (im_height, im_width, channels) = np.array(image).shape
@@ -38,21 +39,30 @@ with detection_graph.as_default():
     detection_classes = detection_graph.get_tensor_by_name("detection_classes:0")
     num_detections = detection_graph.get_tensor_by_name("num_detections:0")
 
-    for i, image_path in enumerate(TEST_IMAGES_PATHS):
-        print(i)
-        image = Image.open(image_path)
-        image_np = load_image_into_numpy_array(image)
-        image_np_expanded = np.expand_dims(image_np, axis=0)
-        (boxes, scores, classes, num) = sess.run([
-            detection_boxes,
-            detection_scores,
-            detection_classes,
-            num_detections
-            ],
-            feed_dict = { image_tensor: image_np_expanded }
-            )
+    #for i, image_path in enumerate(TEST_IMAGES_PATHS):
+    i = 0
+    image_path = TEST_IMAGES_PATHS[i]
 
-       Image.fromarray(image_np).save(OUTPUT_FOLDER + "/test"+str(i) + ".jpg")
+    image = Image.open(image_path)
+    image_np = load_image_into_numpy_array(image)
+    image_np_expanded = np.expand_dims(image_np, axis=0)
+    (boxes, scores, classes, num) = sess.run([
+        detection_boxes,
+        detection_scores,
+        detection_classes,
+        num_detections
+        ],
+        feed_dict = { image_tensor: image_np_expanded }
+        )
+
+    detections = utils.to_detections(np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes))
+
+    detections = detections.filter_classes(1).filter_score(gt=0.5)
+
+    utils.draw_ellipses_around_players(image_np, detections)
+
+
+    Image.fromarray(image_np).save(OUTPUT_FOLDER + "/test"+str(i) + ".jpg")
 
 
 
