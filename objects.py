@@ -3,6 +3,9 @@ class Detection(object):
     box = None
     score = None
     classes = None
+    normalized_box = None
+    box_image = None
+    colour = None
 
     def __init__(self, box, score, classes):
         self.box = box
