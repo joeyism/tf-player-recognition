@@ -40,7 +40,9 @@ def to_detections(image, boxes, scores, classes):
         ymin, xmin, ymax, xmax = boxes[i]
         detection.normalized_box = (xmin * im_width, xmax * im_width, ymin * im_height, ymax * im_height)
         detection.box_image = image.crop((detection.normalized_box[0], detection.normalized_box[2], detection.normalized_box[1], detection.normalized_box[3]))
-        detection.center = ( im_width*(xmin + xmax)/2 , im_height*(ymin + ymax)/2  )
+        player_height = ymax - ymin
+
+        detection.center = ( im_width*(xmin + xmax)/2 , im_height*(ymax - player_height*0.1)  )
 
         total_detections.append(detection)
 
@@ -95,5 +97,31 @@ def get_colours_from_image(image):
 def set_colours_on_detections(detections):
     for detection in detections:
         detection.colour = get_colours_from_image(load_image_into_numpy_array(detection.box_image))
-        detection.boundary_index = get_boundary_num(detection.colour)
+        detection.boundary_index = int(get_boundary_num(detection.colour))
 
+def draw_line_from_distances(image, players_group, distances):
+    image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
+
+    draw = ImageDraw.Draw(image_pil)
+    for distance in distances:
+        n1 = int(distance[0])
+        n2 = int(distance[1])
+        draw.line(
+                [ players_group[n1].center, players_group[n2].center ], 
+                fill=players_group[n1].colour,
+                width = 3
+                )
+    np.copyto(image, np.array(image_pil))
+    return image
+
+def draw_lines_between_players(image, players):
+    n = len(players)
+    for i in range(6):
+        players_group = players.filter_boundary_index(i)
+        distances = players_group.distances()
+        if len(distances) == 0:
+            continue
+        distances = distances[:n-1]
+        image = draw_line_from_distances(image, players_group, distances)
+
+    

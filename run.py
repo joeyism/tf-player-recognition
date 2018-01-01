@@ -52,8 +52,9 @@ with detection_graph.as_default():
 
     detections = detections.filter_classes(1).filter_score(gt=0.3)
     utils.set_colours_on_detections(detections)
-
     utils.draw_ellipses_around_players(image_np, detections)
+    utils.draw_lines_between_players(image_np, detections)
+
 
 
     Image.fromarray(image_np).save(OUTPUT_FOLDER + "/test"+str(i) + ".jpg")

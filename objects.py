@@ -1,3 +1,5 @@
+import math
+import numpy as np
 
 class Detection(object):
     box = None
@@ -42,4 +44,18 @@ class Detections(list):
             if detection.boundary_index == index:
                 result.append(detection)
         return Detections(result)
+
+    def distances(self):
+        n = len(self)
+        result = []
+
+        for i in range(n):
+            p1 = self[i].center
+            for j in range(i+1, n):
+                p2 = self[j].center
+                distance = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+                result.append([i, j, distance])
+        return np.array(result)
+                
+
 
