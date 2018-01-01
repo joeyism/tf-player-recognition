@@ -32,32 +32,28 @@ with detection_graph.as_default():
     detection_classes = detection_graph.get_tensor_by_name("detection_classes:0")
     num_detections = detection_graph.get_tensor_by_name("num_detections:0")
 
-    #for i, image_path in enumerate(TEST_IMAGES_PATHS):
-    i = 0
-    image_path = TEST_IMAGES_PATHS[i]
+    for i, image_path in enumerate(TEST_IMAGES_PATHS):
+        print(i)
+        image = Image.open(image_path)
+        image_np = utils.load_image_into_numpy_array(image)
+        image_np_expanded = np.expand_dims(image_np, axis=0)
+        (boxes, scores, classes, num) = sess.run([
+            detection_boxes,
+            detection_scores,
+            detection_classes,
+            num_detections
+            ],
+            feed_dict = { image_tensor: image_np_expanded }
+            )
 
-    image = Image.open(image_path)
-    image_np = utils.load_image_into_numpy_array(image)
-    image_np_expanded = np.expand_dims(image_np, axis=0)
-    (boxes, scores, classes, num) = sess.run([
-        detection_boxes,
-        detection_scores,
-        detection_classes,
-        num_detections
-        ],
-        feed_dict = { image_tensor: image_np_expanded }
-        )
+        detections = utils.to_detections(image, np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes))
 
-    detections = utils.to_detections(image, np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes))
+        detections = detections.filter_classes(1).filter_score(gt=0.3)
+        utils.set_colours_on_detections(detections)
+        utils.draw_ellipses_around_players(image_np, detections)
+        utils.draw_lines_between_players(image_np, detections)
 
-    detections = detections.filter_classes(1).filter_score(gt=0.3)
-    utils.set_colours_on_detections(detections)
-    utils.draw_ellipses_around_players(image_np, detections)
-    utils.draw_lines_between_players(image_np, detections)
-
-
-
-    Image.fromarray(image_np).save(OUTPUT_FOLDER + "/test"+str(i) + ".jpg")
+        Image.fromarray(image_np).save(OUTPUT_FOLDER + "/test"+str(i) + ".jpg")
 
 
 
