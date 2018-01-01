@@ -6,6 +6,8 @@ class Detection(object):
     normalized_box = None
     box_image = None
     colour = None
+    boundary_index = None
+    center = None
 
     def __init__(self, box, score, classes):
         self.box = box
@@ -31,6 +33,13 @@ class Detections(list):
         result = []
         for detection in self:
             if detection.classes == classes:
+                result.append(detection)
+        return Detections(result)
+
+    def filter_boundary_index(self, index):
+        result = []
+        for detection in self:
+            if detection.boundary_index == index:
                 result.append(detection)
         return Detections(result)
 

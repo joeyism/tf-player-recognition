@@ -4,6 +4,28 @@ import PIL.Image as Image
 import numpy as np
 import PIL.ImageDraw as ImageDraw
 
+boundaries = [
+            ([17, 15, 100], [50, 56, 200]), #blue
+            ([80, 0, 0], [255, 133, 133]), #red
+            ([86, 31, 4], [220, 88, 50]), #brown/orange
+            ([25, 146, 190], [62, 174, 250]), #blue
+            ([103, 86, 65], [145, 133, 128]), #grey
+            ([190,190,190], [255, 255, 255]) # white
+        ]
+
+def in_range(tup, boundary):
+    lower = boundary[0]
+    upper = boundary[1]
+    res = []
+    for i, val in enumerate(tup):
+        res.append(True if val >= lower[i] and val <= upper[i] else False)
+    return all(res)
+
+def get_boundary_num(tup):
+    for i, boundary in enumerate(boundaries):
+        if in_range(tup, boundary):
+            return i
+    return -1
 
 def to_detections(image, boxes, scores, classes):
     if len(boxes) != len(scores) and len(scores) != len(classes):
@@ -18,6 +40,7 @@ def to_detections(image, boxes, scores, classes):
         ymin, xmin, ymax, xmax = boxes[i]
         detection.normalized_box = (xmin * im_width, xmax * im_width, ymin * im_height, ymax * im_height)
         detection.box_image = image.crop((detection.normalized_box[0], detection.normalized_box[2], detection.normalized_box[1], detection.normalized_box[3]))
+        detection.center = ( im_width*(xmin + xmax)/2 , im_height*(ymin + ymax)/2  )
 
         total_detections.append(detection)
 
@@ -72,5 +95,5 @@ def get_colours_from_image(image):
 def set_colours_on_detections(detections):
     for detection in detections:
         detection.colour = get_colours_from_image(load_image_into_numpy_array(detection.box_image))
-
+        detection.boundary_index = get_boundary_num(detection.colour)
 
