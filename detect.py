@@ -64,3 +64,9 @@ def test():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "test":
         test()
+        sys.exit()
+    path = sys.argv[1]
+    image = Image.open(path)
+    image_np = detect_image(image)
+    Image.fromarray(image_np).save(OUTPUT_FOLDER + "/" + path.replace("/", "_"))
+        
