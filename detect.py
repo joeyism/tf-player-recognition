@@ -31,7 +31,7 @@ detection_scores = detection_graph.get_tensor_by_name("detection_scores:0")
 detection_classes = detection_graph.get_tensor_by_name("detection_classes:0")
 num_detections = detection_graph.get_tensor_by_name("num_detections:0")
 
-def detect_image(image):
+def detect_image(image, threshold = 0.3):
     image_np = utils.load_image_into_numpy_array(image)
     image_np_expanded = np.expand_dims(image_np, axis=0)
     (boxes, scores, classes, num) = sess.run([
@@ -45,7 +45,7 @@ def detect_image(image):
 
     detections = utils.to_detections(image, np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes))
 
-    detections = detections.filter_classes(1).filter_score(gt=0.3)
+    detections = detections.filter_classes(1).filter_score(gt=threshold)
     utils.set_colours_on_detections(detections)
     utils.draw_ellipses_around_players(image_np, detections)
     utils.draw_lines_between_players(image_np, detections)
@@ -55,10 +55,10 @@ def test():
     TEST_IMAGES_FOLDER = "sports_images"
     TEST_IMAGES_PATHS = [ os.path.join(TEST_IMAGES_FOLDER, image_path) for image_path in os.listdir(TEST_IMAGES_FOLDER)]
     for i, image_path in enumerate(TEST_IMAGES_PATHS):
-        print(i)
+        print(i, image_path)
         image = Image.open(image_path)
         image_np = detect_image(image)
-        Image.fromarray(image_np).save(OUTPUT_FOLDER + "/test"+str(i) + ".jpg")
+        Image.fromarray(image_np).save(OUTPUT_FOLDER + "/" + image_path.replace("/", "_"))
 
 
 if __name__ == "__main__":

@@ -51,10 +51,17 @@ def to_detections(image, boxes, scores, classes):
 
 def load_image_into_numpy_array(image):
     (im_height, im_width, channels) = np.array(image).shape
-    image_np = np.array(image.getdata()).reshape((im_height, im_width, channels))
+    try:
+        image_np = np.array(image.getdata()).reshape((im_height, im_width, channels))
+    except:
+        return image
+
     if channels > 3:
         image_np = image_np[:, :, :3]
     return image_np.astype(np.uint8)
+
+def diffs(x0, x1, y0, y1):
+    return (x1 - x0, y1 - y0)
 
 
 def draw_ellipses_around_players(image, players):
@@ -63,9 +70,10 @@ def draw_ellipses_around_players(image, players):
     draw = ImageDraw.Draw(image_pil)
     for player in players:
         (x0, x1, y0, y1) = player.normalized_box
+        if x1 - x0 > image.shape[1]/3 or y1 - y0 > image.shape[0]/3:
+            continue
         player_height = y1 - y0
         y0 = y1 - player_height*0.2
-        #print(player.colour)
         draw.ellipse([x0, y0, x1, y1], fill=player.colour)
 
     np.copyto(image, np.array(image_pil))
