@@ -21,8 +21,11 @@ writer = imageio.get_writer("output_" + filename, fps=fps)
 try:
     for i, frame in enumerate(reader):
         print("\r{}/{}".format(i, N), end="")
-        new_frame = detect.detect_image(Image.fromarray(np.uint8(frame)).convert('RGB')
-    )
+        new_frame = detect.detect_image(
+                Image.fromarray(np.uint8(frame)).convert('RGB'),
+                threshold = 0.3,
+                use_same_colour = False
+            )
         writer.append_data(new_frame)
 except:
     pass

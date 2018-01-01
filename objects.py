@@ -55,7 +55,7 @@ class Detections(list):
                 p2 = self[j].center
                 distance = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
                 result.append([i, j, distance])
-        return np.array(result)
+        return np.array(result) #TODO: reverse
                 
 
 

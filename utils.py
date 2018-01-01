@@ -7,10 +7,13 @@ import PIL.ImageDraw as ImageDraw
 # boundaries in the form of (lower_limit, upper_limit, appropriate_color)
 boundaries = [
             #([17, 15, 100], [50, 56, 200]), #blue
-            ([100, 0, 0], [255, 140, 90], (255, 0, 0)), #red
-            ([0, 0, 65], [105, 174, 255], (0, 0, 255)), #blue
-            ([103, 86, 65], [145, 133, 128], (100, 100, 100)), #grey
-            ([190,190,190], [255, 255, 255], (255, 255, 255)) # white
+            ([60, 60, 60], [80, 80, 80], (100, 100, 100)), # greys
+            ([70, 70, 70], [95, 95, 95], (100, 100, 100)),
+            ([80, 80, 80], [100, 100, 100], (100, 100, 100)),
+            ([103, 86, 65], [145, 133, 128], (100, 100, 100)),
+            ([190,190,190], [255, 255, 255], (255, 255, 255)), # white
+            ([100, 0, 0], [255, 140, 100], (255, 0, 0)), #red
+            ([0, 0, 65], [105, 174, 255], (0, 0, 255)) #blue
         ]
 
 def in_range(tup, boundary):
@@ -38,10 +41,20 @@ def to_detections(image, boxes, scores, classes):
     for i in range(n):
         detection = Detection(boxes[i], scores[i], classes[i])
         ymin, xmin, ymax, xmax = boxes[i]
-        detection.normalized_box = (xmin * im_width, xmax * im_width, ymin * im_height, ymax * im_height)
-        detection.box_image = image.crop((detection.normalized_box[0], detection.normalized_box[2], detection.normalized_box[1], detection.normalized_box[3]))
         player_height = ymax - ymin
 
+        detection.normalized_box = (
+                xmin * im_width, 
+                xmax * im_width, 
+                ymin * im_height, 
+                ymax * im_height
+            )
+        detection.box_image = image.crop((
+            detection.normalized_box[0], 
+            detection.normalized_box[2], 
+            detection.normalized_box[1], 
+            detection.normalized_box[3] - player_height*im_height/2
+            ))
         detection.center = ( im_width*(xmin + xmax)/2 , im_height*(ymax - player_height*0.1)  )
 
         total_detections.append(detection)
