@@ -46,7 +46,7 @@ def detect_image(image, threshold = 0.3):
     detections = utils.to_detections(image, np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes))
 
     detections = detections.filter_classes(1).filter_score(gt=threshold)
-    utils.set_colours_on_detections(detections)
+    utils.set_colours_on_detections(detections, use_same_colour = True)
     utils.draw_ellipses_around_players(image_np, detections)
     utils.draw_lines_between_players(image_np, detections)
     return image_np

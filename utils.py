@@ -4,13 +4,13 @@ import PIL.Image as Image
 import numpy as np
 import PIL.ImageDraw as ImageDraw
 
+# boundaries in the form of (lower_limit, upper_limit, appropriate_color)
 boundaries = [
-            ([17, 15, 100], [50, 56, 200]), #blue
-            ([80, 0, 0], [255, 133, 133]), #red
-            ([86, 31, 4], [220, 88, 50]), #brown/orange
-            ([25, 146, 190], [62, 174, 250]), #blue
-            ([103, 86, 65], [145, 133, 128]), #grey
-            ([190,190,190], [255, 255, 255]) # white
+            #([17, 15, 100], [50, 56, 200]), #blue
+            ([100, 0, 0], [255, 140, 90], (255, 0, 0)), #red
+            ([0, 0, 65], [105, 174, 255], (0, 0, 255)), #blue
+            ([103, 86, 65], [145, 133, 128], (100, 100, 100)), #grey
+            ([190,190,190], [255, 255, 255], (255, 255, 255)) # white
         ]
 
 def in_range(tup, boundary):
@@ -75,6 +75,7 @@ def draw_ellipses_around_players(image, players):
         player_height = y1 - y0
         y0 = y1 - player_height*0.2
         draw.ellipse([x0, y0, x1, y1], fill=player.colour)
+        draw.text(player.center, str(player.boundary_index), fill=(255, 255, 255))
 
     np.copyto(image, np.array(image_pil))
     return image
@@ -102,10 +103,12 @@ def get_colours_from_image(image):
         scores.append(score[i])
     return colours[np.argsort(scores)[-2]]
 
-def set_colours_on_detections(detections):
+def set_colours_on_detections(detections, use_same_colour = True):
     for detection in detections:
         detection.colour = get_colours_from_image(load_image_into_numpy_array(detection.box_image))
         detection.boundary_index = int(get_boundary_num(detection.colour))
+        if use_same_colour:
+            detection.colour = boundaries[detection.boundary_index][2]
 
 def draw_line_from_distances(image, players_group, distances):
     image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
@@ -123,9 +126,9 @@ def draw_line_from_distances(image, players_group, distances):
     return image
 
 def draw_lines_between_players(image, players):
-    n = len(players)
     for i in range(6):
         players_group = players.filter_boundary_index(i)
+        n = len(players_group)
         distances = players_group.distances()
         if len(distances) == 0:
             continue

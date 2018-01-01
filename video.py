@@ -3,6 +3,9 @@ import detect
 import PIL.Image as Image
 import numpy as np
 import sys
+import time
+
+start = time.time()
 
 filename = sys.argv[1]
 if not filename:
@@ -11,7 +14,7 @@ if not filename:
 
 reader = imageio.get_reader(filename, "ffmpeg")
 fps = reader.get_meta_data()['fps']
-N = len(reader)
+N = len(reader) - 1
 
 writer = imageio.get_writer("output_" + filename, fps=fps)
 
@@ -25,3 +28,6 @@ except:
     pass
 
 writer.close()
+end = time.time()
+
+print("Execution time: {}s".format(end-start))
