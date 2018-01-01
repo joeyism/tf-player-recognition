@@ -1,9 +1,10 @@
-import tensorflow as tf
-import os
 from PIL import Image
+import tensorflow as tf
 import numpy as np
+import os
 import label_map_util
 import utils
+import sys
 
 
 detection_graph = tf.Graph()
@@ -20,9 +21,7 @@ label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=90, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
-TEST_IMAGES_FOLDER = "sports_images"
 OUTPUT_FOLDER = "output"
-TEST_IMAGES_PATHS = [ os.path.join(TEST_IMAGES_FOLDER, image_path) for image_path in os.listdir(TEST_IMAGES_FOLDER)]
 
 detection_graph.as_default()
 sess = tf.Session(graph = detection_graph)
@@ -52,8 +51,9 @@ def detect_image(image):
     utils.draw_lines_between_players(image_np, detections)
     return image_np
 
-
-if __name__ == "__main__":
+def test():
+    TEST_IMAGES_FOLDER = "sports_images"
+    TEST_IMAGES_PATHS = [ os.path.join(TEST_IMAGES_FOLDER, image_path) for image_path in os.listdir(TEST_IMAGES_FOLDER)]
     for i, image_path in enumerate(TEST_IMAGES_PATHS):
         print(i)
         image = Image.open(image_path)
@@ -61,5 +61,6 @@ if __name__ == "__main__":
         Image.fromarray(image_np).save(OUTPUT_FOLDER + "/test"+str(i) + ".jpg")
 
 
-
-
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "test":
+        test()
