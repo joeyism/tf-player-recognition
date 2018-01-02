@@ -18,13 +18,16 @@ N = len(reader) - 1
 
 writer = imageio.get_writer("output_" + filename, fps=fps)
 
-for i, frame in enumerate(reader):
-    print("\r{}/{}".format(i, N), end="")
-    new_frame = detect.detect_image(
-            Image.fromarray(np.uint8(frame)).convert('RGB'),
-            use_same_colour = False
-        )
-    writer.append_data(new_frame)
+try:
+    for i, frame in enumerate(reader):
+        print("\r{}/{}".format(i, N), end="")
+        new_frame = detect.detect_image(
+                Image.fromarray(np.uint8(frame)).convert('RGB'),
+                use_same_colour = False
+            )
+        writer.append_data(new_frame)
+except:
+    pass
 
 writer.close()
 end = time.time()
