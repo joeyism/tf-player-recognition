@@ -3,4 +3,5 @@ Pillow
 numpy
 imageio
 scikit-image
+scikit-learn
 protobuf
