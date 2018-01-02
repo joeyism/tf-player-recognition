@@ -3,6 +3,8 @@ from sklearn.cluster import KMeans
 import PIL.Image as Image
 import numpy as np
 import PIL.ImageDraw as ImageDraw
+from timeme import time_here
+from skimage.color import rgb2lab, deltaE_cie76
 
 # boundaries in the form of (lower_limit, upper_limit, appropriate_color)
 boundaries = [
@@ -16,6 +18,25 @@ boundaries = [
             ([10, 30, 30], [50, 100, 100], (50, 100, 100)), #teal
             ([0, 0, 0], [1, 1, 1], (0, 0, 0))
         ]
+
+colours_lab = [
+    ( rgb2lab([[[0,0,45]]]), [0,0,45] ),
+    ( rgb2lab([[[0,0,128]]]), [0,0,128] ),
+    ( rgb2lab([[[0,0,255]]]), [0,0,255] ),
+    ( rgb2lab([[[45,0,0]]]), [45,0,0] ),
+    ( rgb2lab([[[128,0,0]]]), [128,0,0] ),
+    ( rgb2lab([[[255,0,0]]]), [255,0,0] ),
+    ( rgb2lab([[[0,255,0]]]), [0,255,0] ),
+    ( rgb2lab([[[255,255,255]]]), [255,255,255] ),
+    ( rgb2lab([[[0,0,0]]]), [255,255,255] )
+]
+
+def normalize_colours(crop_np, threshold=10):
+    for colour_lab, original_colour in colours_lab:
+        crop_lab = rgb2lab(crop_np)
+        distances = deltaE_cie76(colour_lab, crop_lab)
+        crop_np[distances < threshold] = original_colour
+    return crop_np
 
 def in_range(tup, boundary):
     lower = boundary[0]
@@ -41,23 +62,6 @@ def to_detections(image, boxes, scores, classes):
 
     for i in range(n):
         detection = Detection(boxes[i], scores[i], classes[i])
-        ymin, xmin, ymax, xmax = boxes[i]
-        player_height = ymax - ymin
-
-        detection.normalized_box = (
-                xmin * im_width,
-                xmax * im_width,
-                ymin * im_height,
-                ymax * im_height
-            )
-        detection.box_image = image.crop((
-            int(detection.normalized_box[0]),
-            int(detection.normalized_box[2]),
-            int(detection.normalized_box[1]),
-            int(detection.normalized_box[3] - player_height*im_height/2)
-            ))
-        detection.center = ( im_width*(xmin + xmax)/2 , im_height*(ymax - player_height*0.1)  )
-
         total_detections.append(detection)
 
     return Detections(total_detections)
@@ -118,11 +122,17 @@ def get_colours_from_image(image):
     return colours[np.argsort(scores)[-2]]
 
 def set_colours_on_detections(detections, use_same_colour = True):
-    for detection in detections:
+    time_here("14.1")
+    for i, detection in enumerate(detections):
+        print(detection.normalized_box)
+        time_here("14.1.{}.1".format(i))
         detection.colour = get_colours_from_image(load_image_into_numpy_array(detection.box_image))
+        time_here("14.1.{}.2".format(i))
         detection.boundary_index = int(get_boundary_num(detection.colour))
+        time_here("14.1.{}.3".format(i))
         if use_same_colour and detection.boundary_index >= 0:
             detection.colour = boundaries[detection.boundary_index][2]
+            time_here("14.1.{}.4".format(i))
 
 def draw_line_from_distances(image, players_group, distances):
     image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
