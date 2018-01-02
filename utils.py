@@ -109,8 +109,7 @@ def centroid_histogram(clt):
 def get_colours_from_image(image):
     height, width, dim = image.shape
     img_vec = np.reshape(image, [height * width, dim] )
-    kmeans = KMeans(n_clusters=2, n_init=2, max_iter=10, precompute_distances=True, algorithm="elkan")
-    kmeans.fit(img_vec)
+    kmeans = KMeans(n_clusters=2, n_init=2, max_iter=10, precompute_distances=True, algorithm="elkan", random_state = 0).fit(img_vec)
     score = centroid_histogram(kmeans)
     colours = []
     scores = []
