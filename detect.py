@@ -61,6 +61,8 @@ def detect_image(image, threshold = 0.4, use_same_colour = True):
     func = partial(utils.add_to_detection, image)
     detections = pool.map(func, detections)
     detections = Detections(detections)
+    pool.join()
+    pool.close()
 
     # addons
 
