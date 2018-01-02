@@ -20,7 +20,7 @@ writer = imageio.get_writer("output_" + filename, fps=fps)
 
 try:
     for i, frame in enumerate(reader):
-        print("\r{}/{}".format(i, N), end="")
+        print("\r{}/{}, {time}".format(i, N, time=time.time() - start), end="")
         new_frame = detect.detect_image(
                 Image.fromarray(np.uint8(frame)).convert('RGB'),
                 use_same_colour = False
