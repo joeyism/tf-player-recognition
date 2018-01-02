@@ -45,16 +45,16 @@ def to_detections(image, boxes, scores, classes):
         player_height = ymax - ymin
 
         detection.normalized_box = (
-                xmin * im_width, 
-                xmax * im_width, 
-                ymin * im_height, 
+                xmin * im_width,
+                xmax * im_width,
+                ymin * im_height,
                 ymax * im_height
             )
         detection.box_image = image.crop((
-            detection.normalized_box[0], 
-            detection.normalized_box[2], 
-            detection.normalized_box[1], 
-            detection.normalized_box[3] - player_height*im_height/2
+            int(detection.normalized_box[0]),
+            int(detection.normalized_box[2]),
+            int(detection.normalized_box[1]),
+            int(detection.normalized_box[3] - player_height*im_height/2)
             ))
         detection.center = ( im_width*(xmin + xmax)/2 , im_height*(ymax - player_height*0.1)  )
 
@@ -150,4 +150,3 @@ def draw_lines_between_players(image, players):
         distances = distances[:n-1]
         image = draw_line_from_distances(image, players_group, distances)
 
-    
