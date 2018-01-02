@@ -8,6 +8,7 @@ class Detection(object):
     normalized_box = None
     box_image = None
     colour = None
+    colour_lab_index = -1
     boundary_index = None
     center = None
 
