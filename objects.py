@@ -17,10 +17,10 @@ class Detection(object):
         self.classes = classes
 
     def __repr__(self):
-        return "box: {box}\nscore: {score}\nclasses: {classes}".format(
-                box = self.box,
-                score = self.score,
-                classes = self.classes)
+        return "boundary_index: {boundary_index}\ncolour: {colour}\n\n".format(
+                boundary_index = self.boundary_index,
+                colour = self.colour
+                )
 
 class Detections(list):
 
@@ -55,7 +55,7 @@ class Detections(list):
                 p2 = self[j].center
                 distance = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
                 result.append([i, j, distance])
-        return np.array(result) #TODO: reverse
+        return np.array(result) 
                 
 
 

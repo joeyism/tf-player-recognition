@@ -6,14 +6,15 @@ import PIL.ImageDraw as ImageDraw
 
 # boundaries in the form of (lower_limit, upper_limit, appropriate_color)
 boundaries = [
-            #([17, 15, 100], [50, 56, 200]), #blue
             ([60, 60, 60], [80, 80, 80], (100, 100, 100)), # greys
             ([70, 70, 70], [95, 95, 95], (100, 100, 100)),
             ([80, 80, 80], [100, 100, 100], (100, 100, 100)),
             ([103, 86, 65], [145, 133, 128], (100, 100, 100)),
             ([190,190,190], [255, 255, 255], (255, 255, 255)), # white
-            ([100, 0, 0], [255, 140, 100], (255, 0, 0)), #red
-            ([0, 0, 65], [105, 174, 255], (0, 0, 255)) #blue
+            ([50, 0, 0], [255, 200, 110], (255, 0, 0)), #red
+            ([0, 0, 60], [105, 240, 255], (0, 0, 255)), #blue
+            ([10, 30, 30], [50, 100, 100], (50, 100, 100)), #teal
+            ([0, 0, 0], [1, 1, 1], (0, 0, 0))
         ]
 
 def in_range(tup, boundary):
@@ -120,7 +121,7 @@ def set_colours_on_detections(detections, use_same_colour = True):
     for detection in detections:
         detection.colour = get_colours_from_image(load_image_into_numpy_array(detection.box_image))
         detection.boundary_index = int(get_boundary_num(detection.colour))
-        if use_same_colour:
+        if use_same_colour and detection.boundary_index >= 0:
             detection.colour = boundaries[detection.boundary_index][2]
 
 def draw_line_from_distances(image, players_group, distances):
@@ -139,7 +140,8 @@ def draw_line_from_distances(image, players_group, distances):
     return image
 
 def draw_lines_between_players(image, players):
-    for i in range(6):
+    no_boundaries = len(boundaries)
+    for i in range(no_boundaries):
         players_group = players.filter_boundary_index(i)
         n = len(players_group)
         distances = players_group.distances()

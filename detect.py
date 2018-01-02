@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageEnhance
 import tensorflow as tf
 import numpy as np
 import os
@@ -31,7 +31,12 @@ detection_scores = detection_graph.get_tensor_by_name("detection_scores:0")
 detection_classes = detection_graph.get_tensor_by_name("detection_classes:0")
 num_detections = detection_graph.get_tensor_by_name("num_detections:0")
 
-def detect_image(image, threshold = 0.37, use_same_colour = True):
+def detect_image(image, threshold = 0.4, use_same_colour = True):
+    old_image = image.copy()
+    old_image_np = utils.load_image_into_numpy_array(old_image)
+
+    # detection
+    image = ImageEnhance.Contrast(ImageEnhance.Brightness(image).enhance(1.5)).enhance(1.5)
     image_np = utils.load_image_into_numpy_array(image)
     image_np_expanded = np.expand_dims(image_np, axis=0)
     (boxes, scores, classes, num) = sess.run([
@@ -44,13 +49,14 @@ def detect_image(image, threshold = 0.37, use_same_colour = True):
         )
 
     detections = utils.to_detections(image, np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes))
-
     detections = detections.filter_classes(1).filter_score(gt=threshold)
     utils.set_colours_on_detections(detections, use_same_colour = use_same_colour)
-    utils.draw_ellipses_around_players(image_np, detections)
-    utils.draw_lines_between_players(image_np, detections)
+    
+    # addons
+    utils.draw_ellipses_around_players(old_image_np, detections)
+    utils.draw_lines_between_players(old_image_np, detections)
 
-    return image_np
+    return old_image_np
 
 def test():
     TEST_IMAGES_FOLDER = "sports_images"
@@ -68,6 +74,6 @@ if __name__ == "__main__":
         sys.exit()
     path = sys.argv[1]
     image = Image.open(path)
-    image_np = detect_image(image, use_same_colour=False)
+    image_np = detect_image(image, threshold = 0.4, use_same_colour=True)
     Image.fromarray(image_np).save(OUTPUT_FOLDER + "/" + path.replace("/", "_"))
         

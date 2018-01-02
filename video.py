@@ -23,7 +23,6 @@ try:
         print("\r{}/{}".format(i, N), end="")
         new_frame = detect.detect_image(
                 Image.fromarray(np.uint8(frame)).convert('RGB'),
-                threshold = 0.3,
                 use_same_colour = False
             )
         writer.append_data(new_frame)
