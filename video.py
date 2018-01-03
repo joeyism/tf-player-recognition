@@ -20,10 +20,12 @@ writer = imageio.get_writer("output_" + filename, fps=fps)
 
 try:
     for i, frame in enumerate(reader):
-        print("\r{}/{}, {time}s".format(i, N, time=time.time() - start), end="")
+        print("\r{}/{}, {time}s\t".format(i, N, time=time.time() - start), end="")
         new_frame = detect.detect_image(
                 Image.fromarray(np.uint8(frame)).convert('RGB'),
-                use_same_colour = False
+                use_same_colour = True,
+                detection_threshold = 0.3,
+                colour_threshold = 30
             )
         writer.append_data(new_frame)
 except:
@@ -32,4 +34,4 @@ except:
 writer.close()
 end = time.time()
 
-print("Execution time: {}s".format(end-start))
+print("\n\nExecution time: {}s".format(end-start))

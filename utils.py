@@ -14,7 +14,7 @@ boundaries = [
             ([103, 86, 65], [145, 133, 128], (100, 100, 100)),
             ([190,190,190], [255, 255, 255], (255, 255, 255)), # white
             ([50, 0, 0], [255, 200, 110], (255, 0, 0)), #red
-            ([0, 0, 60], [105, 240, 255], (0, 0, 255)), #blue
+            ([0, 0, 60], [145, 240, 255], (0, 0, 255)), #blue
             ([10, 30, 30], [50, 100, 100], (50, 100, 100)), #teal
             ([0, 0, 0], [1, 1, 1], (0, 0, 0))
         ]
@@ -27,6 +27,7 @@ colours_lab = [
     ( rgb2lab([[[128,0,0]]]), [128,0,0] ),
     ( rgb2lab([[[255,0,0]]]), [255,0,0] ),
     ( rgb2lab([[[0,255,0]]]), [0,255,0] ),
+    ( rgb2lab([[[135, 206, 235]]]), [0, 0, 255] ),
     ( rgb2lab([[[255,255,255]]]), [255,255,255] ),
     ( rgb2lab([[[0,0,0]]]), [255,255,255] )
 ]
@@ -154,7 +155,7 @@ def draw_lines_between_players(image, players):
         distances = distances[:n-1]
         image = draw_line_from_distances(image, players_group, distances)
 
-def add_detected_image(image, player):
+def add_detected_image(image, player, colour_threshold = 20):
     im_width, im_height = image.size
     ymin, xmin, ymax, xmax = player.box
     player_height = ymax - ymin
@@ -172,11 +173,11 @@ def add_detected_image(image, player):
         int(player.normalized_box[3] - player_height*im_height/2)
         ))
     player.center = ( im_width*(xmin + xmax)/2 , im_height*(ymax - player_height*0.1)  )
-    image_np = normalize_colours(load_image_into_numpy_array(player.box_image))
+    image_np = normalize_colours(load_image_into_numpy_array(player.box_image), threshold = colour_threshold)
     player.box_image = Image.fromarray(image_np)
     return player
 
-def add_to_detection(image, player):
-    player = add_detected_image(image, player)
+def add_to_detection(image, player, colour_threshold = 20):
+    player = add_detected_image(image, player, colour_threshold = 20)
     player = set_colour_on_detection(player)
     return player

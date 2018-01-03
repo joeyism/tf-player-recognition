@@ -37,7 +37,7 @@ detection_classes = detection_graph.get_tensor_by_name("detection_classes:0")
 num_detections = detection_graph.get_tensor_by_name("num_detections:0")
 
 
-def detect_image(image, threshold = 0.4, use_same_colour = True):
+def detect_image(image, detection_threshold = 0.4, colour_threshold = 20, use_same_colour = True):
     old_image = image.copy()
     old_image_np = utils.load_image_into_numpy_array(old_image)
 
@@ -55,14 +55,14 @@ def detect_image(image, threshold = 0.4, use_same_colour = True):
         )
 
     detections = utils.to_detections(image, np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes))
-    detections = detections.filter_classes(1).filter_score(gt=threshold)
+    detections = detections.filter_classes(1).filter_score(gt=detection_threshold)
 
     pool = mp.Pool(no_cpu)
-    func = partial(utils.add_to_detection, image)
+    func = partial(utils.add_to_detection, image, colour_threshold = colour_threshold)
     detections = pool.map(func, detections)
     detections = Detections(detections)
-    pool.join()
     pool.close()
+    pool.join()
 
     # addons
 
