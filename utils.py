@@ -149,7 +149,7 @@ def draw_lines_between_players(image, players):
     for i in range(no_boundaries):
         players_group = players.filter_boundary_index(i)
         n = len(players_group)
-        distances = players_group.distances()
+        distances = players_group.distances() # Distance should weigh heavier on vertical, as you want to connect players that are more vertically connected
         if len(distances) == 0:
             continue
         distances = distances[:n-1]
