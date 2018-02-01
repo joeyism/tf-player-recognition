@@ -47,6 +47,7 @@ class Masks(list):
         return
 
 
+
 class MaskRCNN(object):
     model = None
 
@@ -76,4 +77,5 @@ class MaskRCNN(object):
             )
             masks.append(mask)
         return Masks(masks)
+
 

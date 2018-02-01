@@ -15,6 +15,7 @@ OUTPUT_FOLDER = "output"
 
 mask_rcnn = MaskRCNN()
 
+
 def detect_image(image, detection_threshold = 0.4, colour_threshold = 20, use_same_colour = True):
     old_image = image.copy()
     old_image_np = utils.load_image_into_numpy_array(old_image)
