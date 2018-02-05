@@ -116,11 +116,12 @@ def draw_ellipses_around_masks(image, masks):
     image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
     draw = ImageDraw.Draw(image_pil)
     for mask in masks:
-        (x0, y0, x1, y1) = mask.rois
+        (x0, x1, y0, y1) = mask.rois
         player_height = y1 - y0
         y0 = y1 - player_height*0.2
-        draw.ellipse([x0, y0, x1, y1], fill=player.colour)
+        draw.ellipse([x0, y0, x1, y1], fill=mask.colour)
 
+    np.copyto(image, np.array(image_pil))
     return image
 
 def centroid_histogram(clt):
@@ -143,7 +144,8 @@ def get_colours_from_image(image):
             continue
         colours.append(colour)
         scores.append(score[i])
-    return colours[np.argsort(scores)[-2]]
+    return colours[np.argsort(scores)[-1]]
+
 
 def set_colour_on_detection(detection, use_same_colour = True):
     detection.colour = get_colours_from_image(load_image_into_numpy_array(detection.box_image))

@@ -13,8 +13,6 @@ if not os.path.exists(COCO_MODEL_PATH):
     utils.download_trained_weights(COCO_MODEL_PATH)
 
 class InferenceConfig(coco.CocoConfig):
-    # Set batch size to 1 since we'll be running inference on
-    # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
 
@@ -27,7 +25,11 @@ class Mask(object):
     mask = None
     rois = None
     masked_image = None
+    masked_image_np = None
     upper_half = None
+    upper_half_np = None
+    colour = None
+    boundary_index = None
 
 
     def __init__(self, class_id, mask, rois, score, masked_image):
@@ -36,9 +38,11 @@ class Mask(object):
         self.rois = rois
         self.score = score
         self.masked_image = masked_image
+        self.masked_image_np = np.array(masked_image)
 
         width, height = masked_image.size
-        self.upper_half = np.array(masked_image.crop((0, 0, width, int(height/2))))
+        self.upper_half = masked_image.crop((0, 0, width, int(height/2)))
+        self.upper_half_np = np.array(self.upper_half)
 
 
 class Masks(list):
