@@ -1,7 +1,9 @@
 from PIL import Image
+from operator import itemgetter
 import model as modellib
 import numpy as np
 import os
+import math
 import utils
 import coco
 
@@ -30,12 +32,17 @@ class Mask(object):
     upper_half_np = None
     colour = None
     boundary_index = None
+    center = None
 
 
     def __init__(self, class_id, mask, rois, score, masked_image):
         self.class_id = class_id
         self.mask = mask
         self.rois = rois
+        self.center = (
+            int((rois[3] + rois[1])/2),
+            int((rois[2] + rois[0])/2)
+        )
         self.score = score
         self.masked_image = masked_image
         self.masked_image_np = np.array(masked_image)
@@ -47,8 +54,27 @@ class Mask(object):
 
 class Masks(list):
 
-    def __get__(self):
-        return
+    def filter_boundary_index(self, index):
+        result = []
+        for mask in self:
+            if mask.boundary_index == index:
+                result.append(mask)
+        return Masks(result)
+
+    def distances(self):
+        n = len(self)
+        result = []
+
+        for i in range(n):
+            p1 = self[i].center
+            for j in range(i+1, n):
+                p2 = self[j].center
+                distance = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+                result.append([i, j, distance])
+        result.sort(key=itemgetter(2))
+        return np.array(result)
+
+
 
 
 
@@ -81,5 +107,9 @@ class MaskRCNN(object):
             )
             masks.append(mask)
         return Masks(masks)
+
+    def detect_people_multiframes(self, images):
+        results = self.model.detect(images)
+        r = results[0]
 
 

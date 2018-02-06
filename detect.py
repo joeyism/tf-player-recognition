@@ -24,9 +24,10 @@ def detect_image(image, detection_threshold = 0.4, colour_threshold = 20, use_sa
         mask.colour = utils.get_colours_from_image(mask.upper_half_np)
         mask.boundary_index = int(utils.get_boundary_num(mask.colour))
 
-    drawn_image = utils.draw_ellipses_around_masks(old_image_np, masks)
+    utils.draw_ellipses_around_masks(old_image_np, masks)
+    utils.draw_lines_between_players(old_image_np, masks)
 
-    return drawn_image
+    return old_image_np
 
 
 

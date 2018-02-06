@@ -116,13 +116,12 @@ def draw_ellipses_around_masks(image, masks):
     image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
     draw = ImageDraw.Draw(image_pil)
     for mask in masks:
-        (x0, x1, y0, y1) = mask.rois
+        (y0, x0, y1, x1) = mask.rois
         player_height = y1 - y0
         y0 = y1 - player_height*0.2
         draw.ellipse([x0, y0, x1, y1], fill=mask.colour)
 
     np.copyto(image, np.array(image_pil))
-    return image
 
 def centroid_histogram(clt):
     numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
