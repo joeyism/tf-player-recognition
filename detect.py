@@ -10,11 +10,29 @@ import label_map_util
 import utils
 import sys
 import multiprocessing as mp
+import time
 
 OUTPUT_FOLDER = "output"
 
 mask_rcnn = MaskRCNN()
 
+def detect_images(images, use_same_colour = True):
+    frames = []
+    for image in images:
+        frames.append(utils.load_image_into_numpy_array(image))
+
+    frame_masks = mask_rcnn.detect_people_multiframes(frames)
+    N = len(frame_masks)
+    for i, masks in enumerate(frame_masks):
+        print("\r{}/{}, {time}s\t".format(i, N, time=time.time() - start), end="")
+        for mask in masks:
+            mask.colour = utils.get_colours_from_image(mask.upper_half_np)
+            mask.boundary_index = int(utils.get_boundary_num(mask.colour))
+
+        utils.draw_ellipses_around_masks(frame[i], masks)
+        utils.draw_lines_between_players(frame[i], masks)
+
+    return frames
 
 def detect_image(image, detection_threshold = 0.4, colour_threshold = 20, use_same_colour = True):
     old_image = image.copy()

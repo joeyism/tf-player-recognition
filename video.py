@@ -1,5 +1,6 @@
 import imageio
 import detect
+import utils
 import PIL.Image as Image
 import numpy as np
 import sys
@@ -19,15 +20,9 @@ N = len(reader) - 1
 writer = imageio.get_writer("output_" + filename, fps=fps)
 
 try:
-    for i, frame in enumerate(reader):
-        print("\r{}/{}, {time}s\t".format(i, N, time=time.time() - start), end="")
-        new_frame = detect.detect_image(
-                Image.fromarray(np.uint8(frame)).convert('RGB'),
-                use_same_colour = True,
-                detection_threshold = 0.3,
-                colour_threshold = 30
-            )
-        writer.append_data(new_frame)
+    new_frames = detect.detect_images(reader)
+    for frame in new_frames:
+        writer.append_data(frame)
 except:
     pass
 

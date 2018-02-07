@@ -18,8 +18,6 @@ class InferenceConfig(coco.CocoConfig):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
 
-config = InferenceConfig()
-config.display()
 
 class Mask(object):
     class_id = None
@@ -80,14 +78,19 @@ class Masks(list):
 
 class MaskRCNN(object):
     model = None
+    config = None
 
     def __init__(self):
-        self.model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=config)
+        self.config = InferenceConfig()
+        self.model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=self.config)
         self.model.load_weights(COCO_MODEL_PATH, by_name=True)
 
     def detect_people(self, image):
         results = self.model.detect([image])
         r = results[0]
+
+        self.config.BATCH_SIZE = 1
+        self.config.IMAGES_PER_GPU = 1
 
         masks = []
         for i, class_id in enumerate(r["class_ids"]):
@@ -108,8 +111,33 @@ class MaskRCNN(object):
             masks.append(mask)
         return Masks(masks)
 
+
     def detect_people_multiframes(self, images):
+        no_of_images = len(images)
+        self.config.BATCH_SIZE = no_of_images
+        self.config.IMAGES_PER_GPU = no_of_images
+
         results = self.model.detect(images)
-        r = results[0]
+        frame_masks = []
+        for r in results:
+            for i, class_id in enumerate(r["class_ids"]):
+                if class_id != 1:
+                    continue
+                crop = r["rois"][i]
+                score = r["scores"][i]
+                this_mask = r["masks"][:, :, i:i+1]
+                subimage = np.multiply(this_mask,image)
+
+                mask = Mask(
+                    class_id,
+                    this_mask,
+                    crop,
+                    score,
+                    Image.fromarray(subimage).crop((crop[1], crop[0], crop[3], crop[2]))
+                )
+                masks.append(mask)
+            frame_masks.append(Masks(masks))
+
+        return frame_masks
 
 
