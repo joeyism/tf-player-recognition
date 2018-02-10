@@ -21,7 +21,7 @@ N = len(reader) - 1
 
 writer = imageio.get_writer("output_" + filename, fps=fps)
 
-new_frames = detect.detect_images(reader)
+new_frames = detect.detect_images(reader, BATCH_SIZE = 8)
 for frame in new_frames:
     writer.append_data(frame)
 

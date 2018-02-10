@@ -147,6 +147,7 @@ class MaskRCNN(object):
         max_batch_no = int(no_of_images/frames.BATCH_SIZE) + 1
         frame_masks = []
         for i in range(max_batch_no):
+            print("Batch {}".format(i))
             frames_batch = frames.get_batch(i)
             results = self.model.detect(frames_batch)
             for r in results:
