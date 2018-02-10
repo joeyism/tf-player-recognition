@@ -1,5 +1,6 @@
 from PIL import Image
 from operator import itemgetter
+from objects import Frames
 import model as modellib
 import numpy as np
 import os
@@ -111,32 +112,48 @@ class MaskRCNN(object):
             masks.append(mask)
         return Masks(masks)
 
+    def __extract_mask_info__(self, r):
+        masks = []
+        for i, class_id in enumerate(r["class_ids"]):
+            if class_id != 1:
+                continue
+            crop = r["rois"][i]
+            score = r["scores"][i]
+            this_mask = r["masks"][:, :, i:i+1]
+            subimage = np.multiply(this_mask,image)
+                                                                                     
+            mask = Mask(
+                class_id,
+                this_mask,
+                crop,
+                score,
+                Image.fromarray(subimage).crop((crop[1], crop[0], crop[3], crop[2]))
+            )                                                                               
+            masks.append(mask)
+        return masks
 
-    def detect_people_multiframes(self, images):
+    def detect_people_multiframes(self, images, BATCH_SIZE = 16):
+        print("Detect people multiframes")
         no_of_images = len(images)
-        self.config.BATCH_SIZE = no_of_images
-        self.config.IMAGES_PER_GPU = no_of_images
 
-        results = self.model.detect(images)
+        print("Number of frames: {}".format(no_of_images))
+        print("Batch Size: {}".format(BATCH_SIZE))
+
+        self.config.BATCH_SIZE = BATCH_SIZE
+        self.config.IMAGES_PER_GPU = BATCH_SIZE
+
+        frames = Frames(images)
+        frames.BATCH_SIZE = BATCH_SIZE
+        max_batch_no = int(no_of_images/frames.BATCH_SIZE) + 1
         frame_masks = []
-        for r in results:
-            for i, class_id in enumerate(r["class_ids"]):
-                if class_id != 1:
-                    continue
-                crop = r["rois"][i]
-                score = r["scores"][i]
-                this_mask = r["masks"][:, :, i:i+1]
-                subimage = np.multiply(this_mask,image)
+        for i in range(max_batch_no):
+            frames_batch = frames.get_batch(i)
+            results = self.model.detect(frames_batch)
+            for r in results:
+                masks = self.__extract_mask_info__(r)
+                frame_masks.append(Masks(masks))
 
-                mask = Mask(
-                    class_id,
-                    this_mask,
-                    crop,
-                    score,
-                    Image.fromarray(subimage).crop((crop[1], crop[0], crop[3], crop[2]))
-                )
-                masks.append(mask)
-            frame_masks.append(Masks(masks))
+        print("Frame Masks: {}".format(len(frame_masks)))
 
         return frame_masks
 

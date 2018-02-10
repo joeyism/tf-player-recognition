@@ -61,4 +61,11 @@ class Detections(list):
                 result.append([i, j, distance])
         return np.array(result)
 
+class Frames(list):
+    BATCH_SIZE = 16
+
+    def get_batch(self, i):
+        length_of_frames = len(self)
+        max_batch_no = int(length_of_frames/self.BATCH_SIZE) + 1
+        return self[i*self.BATCH_SIZE:(i+1)*self.BATCH_SIZE]
 

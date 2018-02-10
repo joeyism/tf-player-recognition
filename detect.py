@@ -16,12 +16,20 @@ OUTPUT_FOLDER = "output"
 
 mask_rcnn = MaskRCNN()
 
-def detect_images(images, use_same_colour = True):
+def detect_images(images, use_same_colour = True, BATCH_SIZE = 16):
+    print("Detect images")
     frames = []
-    for image in images:
-        frames.append(utils.load_image_into_numpy_array(image))
+    try:
+        for image in images:
+            frames.append(utils.load_image_into_numpy_array(image))
+    except:
+        pass
+    print("There are {} frames".format(len(frames)))
 
-    frame_masks = mask_rcnn.detect_people_multiframes(frames)
+    frame_masks = mask_rcnn.detect_people_multiframes(frames, BATCH_SIZE = BATCH_SIZE)
+
+    print("Complete detection")
+
     N = len(frame_masks)
     for i, masks in enumerate(frame_masks):
         print("\r{}/{}, {time}s\t".format(i, N, time=time.time() - start), end="")

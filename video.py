@@ -6,6 +6,8 @@ import numpy as np
 import sys
 import time
 
+print("Start")
+
 start = time.time()
 
 filename = sys.argv[1]
@@ -19,12 +21,9 @@ N = len(reader) - 1
 
 writer = imageio.get_writer("output_" + filename, fps=fps)
 
-try:
-    new_frames = detect.detect_images(reader)
-    for frame in new_frames:
-        writer.append_data(frame)
-except:
-    pass
+new_frames = detect.detect_images(reader)
+for frame in new_frames:
+    writer.append_data(frame)
 
 writer.close()
 end = time.time()
