@@ -24,7 +24,10 @@ def detect_images(images, use_same_colour = True, BATCH_SIZE = 16):
             frames.append(utils.load_image_into_numpy_array(image))
     except:
         pass
+    frames = np.array(frames)
+    print(frames.shape)
     print("There are {} frames".format(len(frames)))
+    
 
     frame_masks = mask_rcnn.detect_people_multiframes(frames, BATCH_SIZE = BATCH_SIZE)
 

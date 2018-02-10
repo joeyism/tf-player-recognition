@@ -1,6 +1,7 @@
 from PIL import Image
 from operator import itemgetter
 from objects import Frames
+import time
 import model as modellib
 import numpy as np
 import os
@@ -86,6 +87,10 @@ class MaskRCNN(object):
         self.model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=self.config)
         self.model.load_weights(COCO_MODEL_PATH, by_name=True)
 
+    def reinit(self):
+        self.model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=self.config)
+        self.model.load_weights(COCO_MODEL_PATH, by_name=True)
+
     def detect_people(self, image):
         results = self.model.detect([image])
         r = results[0]
@@ -112,7 +117,7 @@ class MaskRCNN(object):
             masks.append(mask)
         return Masks(masks)
 
-    def __extract_mask_info__(self, r):
+    def __extract_mask_info__(self, r, image):
         masks = []
         for i, class_id in enumerate(r["class_ids"]):
             if class_id != 1:
@@ -139,19 +144,26 @@ class MaskRCNN(object):
         print("Number of frames: {}".format(no_of_images))
         print("Batch Size: {}".format(BATCH_SIZE))
 
-        self.config.BATCH_SIZE = BATCH_SIZE
-        self.config.IMAGES_PER_GPU = BATCH_SIZE
 
         frames = Frames(images)
         frames.BATCH_SIZE = BATCH_SIZE
         max_batch_no = int(no_of_images/frames.BATCH_SIZE) + 1
         frame_masks = []
+        start = time.time()
         for i in range(max_batch_no):
-            print("Batch {}".format(i))
             frames_batch = frames.get_batch(i)
+            end = time.time()
+            print("Batch {} \tBatch Size {}\t".format(i, len(frames_batch), end - start))
+            start = end
+
+            batch_length = len(frames_batch)
+            self.config.BATCH_SIZE = batch_length
+            self.config.IMAGES_PER_GPU = batch_length
+            self.reinit()
+
             results = self.model.detect(frames_batch)
-            for r in results:
-                masks = self.__extract_mask_info__(r)
+            for j, r in enumerate(results):
+                masks = self.__extract_mask_info__(r, frames_batch[j])
                 frame_masks.append(Masks(masks))
 
         print("Frame Masks: {}".format(len(frame_masks)))
