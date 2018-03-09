@@ -1,6 +1,7 @@
 from PIL import Image
 from operator import itemgetter
 from objects import Frames
+from tqdm import *
 import time
 import model as modellib
 import numpy as np
@@ -150,10 +151,10 @@ class MaskRCNN(object):
         max_batch_no = int(no_of_images/frames.BATCH_SIZE) + 1
         frame_masks = []
         start = time.time()
-        for i in range(max_batch_no):
+        end = time.time()
+        for i in tqdm(range(max_batch_no), desc="Detection" ):
             frames_batch = frames.get_batch(i)
             end = time.time()
-            print("Batch {} \tBatch Size {}\t".format(i, len(frames_batch), end - start))
             start = end
 
             batch_length = len(frames_batch)

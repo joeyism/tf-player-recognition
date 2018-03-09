@@ -5,6 +5,7 @@ import PIL.Image as Image
 import numpy as np
 import sys
 import time
+from tqdm import *
 
 print("Start")
 

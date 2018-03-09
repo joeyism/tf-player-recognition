@@ -6,13 +6,13 @@ import model as modellib
 import coco
 from objects import Frames
 import os
+import time
 
 class InferenceConfig(coco.CocoConfig):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
     
 config = InferenceConfig()
-config.display()
 
 
 reader = imageio.get_reader("firmino-arsenal-2.mkv", "ffmpeg")
@@ -32,8 +32,18 @@ MODEL_DIR = os.path.join(ROOT_DIR, "logs")
 model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=config)
 model.load_weights(COCO_MODEL_PATH, by_name=True)
 frames = Frames(frames)
+frames.BATCH_SIZE = BATCH_SIZE
+
+
+config.display()
+
 print("BATCH SIZE: ", config.BATCH_SIZE)
+begin = time.time()
 for i in range(int(len(frames)/BATCH_SIZE)):
-    PRINT("\r{}/{}\t".format(i, int(len(frames)/BATCH_SIZE)), end="")
+    now = time.time()
+    print("\r{}/{} {}s\t".format(i + 1, int(len(frames)/BATCH_SIZE), int(now - begin)), end="")
     frames_batch = frames.get_batch(i)
     model.detect(frames_batch)
+end = time.time()
+print("Total time elapsed: {}s".format(int(end - begin)))
+

@@ -11,6 +11,7 @@ import utils
 import sys
 import multiprocessing as mp
 import time
+from tqdm import *
 
 OUTPUT_FOLDER = "output"
 
@@ -20,7 +21,7 @@ def detect_images(images, use_same_colour = True, BATCH_SIZE = 16):
     print("Detect images")
     frames = []
     try:
-        for image in images:
+        for image in tqdm(images, desc="Loading images into numpy"):
             frames.append(utils.load_image_into_numpy_array(image))
     except:
         pass
@@ -34,8 +35,7 @@ def detect_images(images, use_same_colour = True, BATCH_SIZE = 16):
     print("Complete detection")
 
     N = len(frame_masks)
-    for i, masks in enumerate(frame_masks):
-        print("\r{}/{}, {time}s\t".format(i, N, time=time.time() - start), end="")
+    for i, masks in tqdm(enumerate(frame_masks), desc="Adding colours: {}/{}, {time}s\t".format(i, N, time=time.time() - start)):
         for mask in masks:
             mask.colour = utils.get_colours_from_image(mask.upper_half_np)
             mask.boundary_index = int(utils.get_boundary_num(mask.colour))

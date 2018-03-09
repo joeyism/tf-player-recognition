@@ -1,8 +1,7 @@
-tensorflow
 Pillow
 numpy
 imageio
 scikit-image
 scikit-learn
 protobuf
-keras
+tqdm
