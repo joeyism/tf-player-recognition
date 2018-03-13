@@ -22,8 +22,8 @@ N = len(reader) - 1
 
 writer = imageio.get_writer("output_" + filename, fps=fps)
 
-new_frames = detect.detect_images(reader, BATCH_SIZE = 8)
-for frame in new_frames:
+new_frames = detect.detect_images(reader, BATCH_SIZE = 16)
+for frame in tqdm(new_frames, "Writing frames"):
     writer.append_data(frame)
 
 writer.close()

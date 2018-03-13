@@ -66,6 +66,11 @@ class Frames(list):
 
     def get_batch(self, i):
         length_of_frames = len(self)
+        size = self[0].shape
         max_batch_no = int(length_of_frames/self.BATCH_SIZE) + 1
-        return self[i*self.BATCH_SIZE:(i+1)*self.BATCH_SIZE]
+        result = self[i*self.BATCH_SIZE:(i+1)*self.BATCH_SIZE]
+        while len(result) < self.BATCH_SIZE:
+            result.append(np.zeros(size))
+        return result
+
 

@@ -145,6 +145,9 @@ class MaskRCNN(object):
         print("Number of frames: {}".format(no_of_images))
         print("Batch Size: {}".format(BATCH_SIZE))
 
+        self.config.BATCH_SIZE = BATCH_SIZE
+        self.config.IMAGES_PER_GPU = BATCH_SIZE
+        self.reinit()
 
         frames = Frames(images)
         frames.BATCH_SIZE = BATCH_SIZE
@@ -156,11 +159,6 @@ class MaskRCNN(object):
             frames_batch = frames.get_batch(i)
             end = time.time()
             start = end
-
-            batch_length = len(frames_batch)
-            self.config.BATCH_SIZE = batch_length
-            self.config.IMAGES_PER_GPU = batch_length
-            self.reinit()
 
             results = self.model.detect(frames_batch)
             for j, r in enumerate(results):

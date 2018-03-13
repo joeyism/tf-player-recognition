@@ -35,13 +35,13 @@ def detect_images(images, use_same_colour = True, BATCH_SIZE = 16):
     print("Complete detection")
 
     N = len(frame_masks)
-    for i, masks in tqdm(enumerate(frame_masks), desc="Adding colours: {}/{}, {time}s\t".format(i, N, time=time.time() - start)):
+    for i, masks in tqdm(enumerate(frame_masks), desc="Drawing Ellipses and Lines"):
         for mask in masks:
             mask.colour = utils.get_colours_from_image(mask.upper_half_np)
             mask.boundary_index = int(utils.get_boundary_num(mask.colour))
 
-        utils.draw_ellipses_around_masks(frame[i], masks)
-        utils.draw_lines_between_players(frame[i], masks)
+        utils.draw_ellipses_around_masks(frames[i], masks)
+        utils.draw_lines_between_players(frames[i], masks)
 
     return frames
 

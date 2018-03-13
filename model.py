@@ -2337,7 +2337,7 @@ class MaskRCNN():
         # Run object detection
         detections, mrcnn_class, mrcnn_bbox, mrcnn_mask, \
             rois, rpn_class, rpn_bbox =\
-            self.keras_model.predict([molded_images, image_metas], verbose=0)
+            self.keras_model.predict([molded_images, image_metas], verbose=1)
         # Process detections
         results = []
         for i, image in enumerate(images):

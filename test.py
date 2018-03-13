@@ -1,12 +1,15 @@
-
 import imageio
 import PIL.Image as Image
 import numpy as np
 import model as modellib
 import coco
+from mask import MaskRCNN
 from objects import Frames
 import os
 import time
+from tqdm import *
+
+begin = time.time()
 
 class InferenceConfig(coco.CocoConfig):
     GPU_COUNT = 1
@@ -38,12 +41,34 @@ frames.BATCH_SIZE = BATCH_SIZE
 config.display()
 
 print("BATCH SIZE: ", config.BATCH_SIZE)
-begin = time.time()
-for i in range(int(len(frames)/BATCH_SIZE)):
+
+#mask_rcnn = MaskRCNN()
+#output_frames = mask_rcnn.detect_people_multiframes(frames, BATCH_SIZE = BATCH_SIZE)
+
+output_frames = []
+max_batch_no = int(len(frames)/BATCH_SIZE)
+for i in tqdm(range(max_batch_no), desc="Detecting" ):
     now = time.time()
-    print("\r{}/{} {}s\t".format(i + 1, int(len(frames)/BATCH_SIZE), int(now - begin)), end="")
     frames_batch = frames.get_batch(i)
-    model.detect(frames_batch)
+
+    batch_length = len(frames_batch)
+    config.BATCH_SIZE = batch_length
+    config.IMAGES_PER_GPU = batch_length
+
+    output = model.detect(frames_batch) #works
+
+
+    for output_frame in output:
+        output_frames.append(output_frame)
+
+writer = imageio.get_writer("output_test.mkv", fps = fps)
+for frame in tqdm(output_frames, desc = "Writing to file"):
+    try:
+        writer.append_data(np.array(frame))
+    except:
+        pass
+
+writer.close()
 end = time.time()
 print("Total time elapsed: {}s".format(int(end - begin)))
 
