@@ -46,10 +46,10 @@ def detect_images(images, use_same_colour = True, BATCH_SIZE = 16, threshold = 0
 
     return frames
 
-def detect_image(image, detection_threshold = 0.4, colour_threshold = 20, use_same_colour = True):
+def detect_image(image, threshold = 0.9, use_same_colour = True):
     old_image = image.copy()
     old_image_np = utils.load_image_into_numpy_array(old_image)
-    masks = mask_rcnn.detect_people(old_image_np)
+    masks = mask_rcnn.detect_people(old_image_np, threshold = threshold)
     for i, mask in tqdm(enumerate(masks), desc="Getting colours"):
         # Image.fromarray(mask.upper_half_np).save(OUTPUT_FOLDER + "/" + str(i) + ".jpg")
         mask.colour = utils.get_colours_from_image(mask.upper_half_np)

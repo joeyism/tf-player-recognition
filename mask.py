@@ -98,7 +98,7 @@ class MaskRCNN(object):
         self.model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=self.config)
         self.model.load_weights(COCO_MODEL_PATH, by_name=True)
 
-    def detect_people(self, image):
+    def detect_people(self, image, threshold = 0.9):
         results = self.model.detect([image])
         r = results[0]
 
@@ -121,7 +121,8 @@ class MaskRCNN(object):
                 score,
                 Image.fromarray(subimage).crop((crop[1], crop[0], crop[3], crop[2]))
             )
-            masks.append(mask)
+            if mask.score > threshold:
+                masks.append(mask)
         return Masks(masks)
 
     def __extract_mask_info__(self, r, image, threshold = 0.98):
