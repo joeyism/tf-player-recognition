@@ -79,7 +79,7 @@ if __name__ == "__main__":
         sys.exit()
     path = sys.argv[1]
     image = Image.open(path)
-    image_np = detect_image(image, detection_threshold = 0.4, use_same_colour=True)
+    image_np = detect_image(image, threshold = 0.9, use_same_colour=True)
     print(OUTPUT_FOLDER + "/" + path.replace("/", "_"))
     Image.fromarray(image_np).save(OUTPUT_FOLDER + "/" + path.replace("/", "_"))
 
