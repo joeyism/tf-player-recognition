@@ -52,6 +52,12 @@ class Mask(object):
         self.upper_half = masked_image.crop((0, 0, width, int(height/2)))
         self.upper_half_np = np.array(self.upper_half)
 
+    def __repr__(self):
+        return str({
+            "class_id": self.class_id, 
+            "score": self.score
+            })
+
 
 class Masks(list):
 
@@ -100,7 +106,7 @@ class MaskRCNN(object):
         self.config.IMAGES_PER_GPU = 1
 
         masks = []
-        for i, class_id in enumerate(r["class_ids"]):
+        for i, class_id in tqdm(enumerate(r["class_ids"]), desc = "Parsing classes"):
             if class_id != 1:
                 continue
             crop = r["rois"][i]
@@ -118,7 +124,7 @@ class MaskRCNN(object):
             masks.append(mask)
         return Masks(masks)
 
-    def __extract_mask_info__(self, r, image):
+    def __extract_mask_info__(self, r, image, threshold = 0.98):
         masks = []
         for i, class_id in enumerate(r["class_ids"]):
             if class_id != 1:
@@ -135,10 +141,11 @@ class MaskRCNN(object):
                 score,
                 Image.fromarray(subimage).crop((crop[1], crop[0], crop[3], crop[2]))
             )                                                                               
-            masks.append(mask)
+            if mask.score > threshold:
+                masks.append(mask)
         return masks
 
-    def detect_people_multiframes(self, images, BATCH_SIZE = 16):
+    def detect_people_multiframes(self, images, BATCH_SIZE = 16, threshold = 0.98):
         print("Detect people multiframes")
         no_of_images = len(images)
 
@@ -162,7 +169,7 @@ class MaskRCNN(object):
 
             results = self.model.detect(frames_batch)
             for j, r in enumerate(results):
-                masks = self.__extract_mask_info__(r, frames_batch[j])
+                masks = self.__extract_mask_info__(r, frames_batch[j], threshold = threshold)
                 frame_masks.append(Masks(masks))
 
         print("Frame Masks: {}".format(len(frame_masks)))

@@ -3,3 +3,4 @@ __pycache__
 output/*
 output_*
 vgg/vgg16.npy
+mask_rcnn_coco.h5

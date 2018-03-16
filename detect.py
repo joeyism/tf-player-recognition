@@ -17,7 +17,7 @@ OUTPUT_FOLDER = "output"
 
 mask_rcnn = MaskRCNN()
 
-def detect_images(images, use_same_colour = True, BATCH_SIZE = 16):
+def detect_images(images, use_same_colour = True, BATCH_SIZE = 16, threshold = 0.98):
     print("Detect images")
     frames = []
     try:
@@ -30,7 +30,7 @@ def detect_images(images, use_same_colour = True, BATCH_SIZE = 16):
     print("There are {} frames".format(len(frames)))
     
 
-    frame_masks = mask_rcnn.detect_people_multiframes(frames, BATCH_SIZE = BATCH_SIZE)
+    frame_masks = mask_rcnn.detect_people_multiframes(frames, BATCH_SIZE = BATCH_SIZE, threshold = threshold)
 
     print("Complete detection")
 
@@ -50,9 +50,11 @@ def detect_image(image, detection_threshold = 0.4, colour_threshold = 20, use_sa
     old_image = image.copy()
     old_image_np = utils.load_image_into_numpy_array(old_image)
     masks = mask_rcnn.detect_people(old_image_np)
-    for mask in masks:
+    for i, mask in tqdm(enumerate(masks), desc="Getting colours"):
+        # Image.fromarray(mask.upper_half_np).save(OUTPUT_FOLDER + "/" + str(i) + ".jpg")
         mask.colour = utils.get_colours_from_image(mask.upper_half_np)
         mask.boundary_index = int(utils.get_boundary_num(mask.colour))
+        # print("{}: {}, boundary {}".format(i, mask.colour, mask.boundary_index))
 
     utils.draw_ellipses_around_masks(old_image_np, masks)
     utils.draw_lines_between_players(old_image_np, masks)

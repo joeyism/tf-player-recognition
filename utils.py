@@ -123,6 +123,9 @@ def draw_ellipses_around_masks(image, masks):
 
     np.copyto(image, np.array(image_pil))
 
+def less_than(colour, a,b,c):
+    return True if colour[0] < a and colour[1] < b and colour[2] < c else False
+
 def centroid_histogram(clt):
     numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
     (hist, _) = np.histogram(clt.labels_, bins = numLabels)
@@ -133,17 +136,22 @@ def centroid_histogram(clt):
 def get_colours_from_image(image):
     height, width, dim = image.shape
     img_vec = np.reshape(image, [height * width, dim] )
-    kmeans = KMeans(n_clusters=2, n_init=2, max_iter=10, precompute_distances=True, algorithm="elkan", random_state = 0).fit(img_vec)
+    kmeans = KMeans(n_clusters=2, n_init=2, max_iter=5, precompute_distances=True, algorithm="elkan", random_state = 0).fit(img_vec)
     score = centroid_histogram(kmeans)
     colours = []
     scores = []
     for i, center in enumerate(kmeans.cluster_centers_):
         colour = (int(center[0]), int(center[1]), int(center[2]))
-        if colour == (0,0,0):
+        if less_than(colour, 7, 7, 7):
             continue
         colours.append(colour)
         scores.append(score[i])
-    return colours[np.argsort(scores)[-1]]
+
+    # if returns nothing, return black
+    try:
+        return colours[np.argsort(scores)[-1]]
+    except:
+        return (0, 0, 0)
 
 
 def set_colour_on_detection(detection, use_same_colour = True):
@@ -170,10 +178,11 @@ def draw_line_from_distances(image, players_group, distances):
 
 def draw_lines_between_players(image, players):
     no_boundaries = len(boundaries)
-    for i in range(no_boundaries):
+    for i in range(-1, no_boundaries):
         players_group = players.filter_boundary_index(i)
+        # print("{}: {}".format(i, len(players_group)))
         n = len(players_group)
-        distances = players_group.distances() # Distance should weigh heavier on vertical, as you want to connect players that are more vertically connected
+        distances = players_group.distances() # TODO: Distance should weigh heavier on vertical, as you want to connect players that are more vertically connected
         if len(distances) == 0:
             continue
         distances = distances[:n-1]
