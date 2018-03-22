@@ -133,6 +133,17 @@ def centroid_histogram(clt):
     hist /= hist.sum()
     return hist
 
+
+def get_colours_from_image_hist(image_np):
+    h = Image.fromarray(image_np).histogram()
+    r = h[0:256]
+    g = h[256:256*2]
+    b = h[256*2: 256*3]
+    r[0] = 0
+    g[0] = 0
+    b[0] = 0
+    return (np.argmax(r), np.argmax(g), np.argmax(b))
+
 def get_colours_from_image(image):
     height, width, dim = image.shape
     img_vec = np.reshape(image, [height * width, dim] )

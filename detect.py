@@ -37,7 +37,7 @@ def detect_images(images, use_same_colour = True, BATCH_SIZE = 16, threshold = 0
     N = len(frame_masks)
     for i, masks in tqdm(enumerate(frame_masks), desc="Drawing Ellipses and Lines"):
         for mask in masks:
-            mask.colour = utils.get_colours_from_image(mask.upper_half_np)
+            mask.colour = utils.get_colours_from_image_hist(mask.upper_half_np)
             mask.boundary_index = int(utils.get_boundary_num(mask.colour))
 
         if i < len(frames):
