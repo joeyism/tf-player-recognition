@@ -51,13 +51,13 @@ def detect_image(image, threshold = 0.9, use_same_colour = True):
     old_image_np = utils.load_image_into_numpy_array(old_image)
     masks = mask_rcnn.detect_people(old_image_np, threshold = threshold)
     for i, mask in tqdm(enumerate(masks), desc="Getting colours"):
-        # Image.fromarray(mask.upper_half_np).save(OUTPUT_FOLDER + "/" + str(i) + ".jpg")
         mask.colour = utils.get_colours_from_image_hist(mask.upper_half_np)
         mask.boundary_index = int(utils.get_boundary_num(mask.colour))
-        # print("{}: {}, boundary {}".format(i, mask.colour, mask.boundary_index))
+        mask.average_colour = utils.remove_background_and_average_colour(mask.masked_image_np)
 
-    utils.draw_ellipses_around_masks(old_image_np, masks)
-    utils.draw_lines_between_players(old_image_np, masks)
+    masks = utils.classify_masks(masks)
+
+    utils.draw_classified_ellipses_around_masks(old_image_np, masks)
 
     return old_image_np
 

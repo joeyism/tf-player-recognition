@@ -44,6 +44,32 @@ colours_lab = [
 ]
 
 
+def draw_classified_ellipses_around_masks(image, masks):
+    image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
+    draw = ImageDraw.Draw(image_pil)
+    for mask in masks:
+        (y0, x0, y1, x1) = mask.rois
+        player_height = y1 - y0
+        y0 = y1 - player_height*0.2
+        draw.ellipse([x0, y0, x1, y1], fill=(0,0,0) if bool(mask.classify) else (25, 255, 255))
+
+    np.copyto(image, np.array(image_pil))
+
+
+
+def classify_masks(masks):
+    average_colours = [mask.average_colour for mask in masks]
+    kmeans = KMeans(n_clusters=2, random_state=0).fit(average_colours)
+    for i, mask in enumerate(masks):
+        mask.classify = kmeans.labels_[i]
+    return masks
+
+
+def remove_background_and_average_colour(image_np):
+    only_coloured_pixels = np.array([pixel for pixel in image_np.reshape((-1, 3)) if pixel.tolist() != [0, 0, 0]])
+    return np.average(only_coloured_pixels, axis=0).astype(int)
+
+
 def normalize_colours(crop_np, threshold=10):
     for colour_lab, original_colour in colours_lab:
         crop_lab = rgb2lab(crop_np)
@@ -225,6 +251,7 @@ def add_to_detection(image, player, colour_threshold = 20):
     player = add_detected_image(image, player, colour_threshold = 20)
     player = set_colour_on_detection(player)
     return player
+
 
 # URL from which to download the latest COCO trained weights
 COCO_MODEL_URL = "https://github.com/matterport/Mask_RCNN/releases/download/v2.0/mask_rcnn_coco.h5"
