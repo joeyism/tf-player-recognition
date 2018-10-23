@@ -43,6 +43,24 @@ colours_lab = [
     ( rgb2lab([[[0,0,0]]]), [255,255,255] )
 ]
 
+classified_colours = {
+        0: (0, 0, 0),
+        1: (255, 255, 255),
+        2: (125, 200, 255)
+        }
+
+
+def draw_lines_between_classified_players(image, players):
+    no_classes = len(classified_colours)
+    for i in range(no_classes):
+        players_group = players.filter_classify(i)
+        n = len(players_group)
+        distances = players_group.distances() 
+        if len(distances) == 0:
+            continue
+        distances = distances[:n-1]
+        image = draw_line_from_distances(image, players_group, distances, colour=classified_colours[players_group[0].classify])
+
 
 def draw_classified_ellipses_around_masks(image, masks):
     image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
@@ -51,17 +69,41 @@ def draw_classified_ellipses_around_masks(image, masks):
         (y0, x0, y1, x1) = mask.rois
         player_height = y1 - y0
         y0 = y1 - player_height*0.2
-        draw.ellipse([x0, y0, x1, y1], fill=(0,0,0) if bool(mask.classify) else (25, 255, 255))
+        draw.ellipse([x0, y0, x1, y1], fill=classified_colours[mask.classify])
 
     np.copyto(image, np.array(image_pil))
 
 
+def sort_by_lowest_translator(cluster_centers, n_clusters):
+    """
+    Sorts by lowest colour val to highest, to keep colour consistent on the same team
+    """
+    d = {}
+    mean = np.mean(cluster_centers, axis=1)
+    d[0] = np.argmin(mean)
+    d[n_clusters - 1] = np.argmax(mean)
+    if n_clusters == 3:
+        d[1] = 3 - d[0] - d[2]
+    return d
 
-def classify_masks(masks):
-    average_colours = [mask.average_colour for mask in masks]
-    kmeans = KMeans(n_clusters=2, random_state=0).fit(average_colours)
+
+def classify_masks(masks, by="average_colour"):
+    colours = [mask.__dict__[by] for mask in masks]
+    n_clusters = 3 if len(masks)>=3 else len(masks)
+
+    if n_clusters == 0:
+        return masks
+
+    try:
+        kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(colours)
+    except:
+        import ipdb
+        ipdb.set_trace()
+
+    translator = sort_by_lowest_translator(kmeans.cluster_centers_, n_clusters)
     for i, mask in enumerate(masks):
-        mask.classify = kmeans.labels_[i]
+        mask.classify = translator[kmeans.labels_[i]]
+
     return masks
 
 
@@ -198,7 +240,7 @@ def set_colour_on_detection(detection, use_same_colour = True):
         detection.colour = boundaries[detection.boundary_index][2]
     return detection
 
-def draw_line_from_distances(image, players_group, distances):
+def draw_line_from_distances(image, players_group, distances, colour=(255, 255, 255)):
     image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
 
     draw = ImageDraw.Draw(image_pil)
@@ -207,23 +249,11 @@ def draw_line_from_distances(image, players_group, distances):
         n2 = int(distance[1])
         draw.line(
                 [ players_group[n1].center, players_group[n2].center ],
-                fill=players_group[n1].colour,
+                fill=colour,
                 width = 3
                 )
     np.copyto(image, np.array(image_pil))
     return image
-
-def draw_lines_between_players(image, players):
-    no_boundaries = len(boundaries)
-    for i in range(-1, no_boundaries):
-        players_group = players.filter_boundary_index(i)
-        # print("{}: {}".format(i, len(players_group)))
-        n = len(players_group)
-        distances = players_group.distances() # TODO: Distance should weigh heavier on vertical, as you want to connect players that are more vertically connected
-        if len(distances) == 0:
-            continue
-        distances = distances[:n-1]
-        image = draw_line_from_distances(image, players_group, distances)
 
 def add_detected_image(image, player, colour_threshold = 20):
     im_width, im_height = image.size

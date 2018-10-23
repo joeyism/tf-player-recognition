@@ -42,6 +42,14 @@ class Detections(list):
                 result.append(detection)
         return Detections(result)
 
+    def filter_classify(self, classify):
+        result = []
+        for detection in self:
+            if detection.classify == classify:
+                result.append(detection)
+        return Detections(result)
+
+
     def filter_boundary_index(self, index):
         result = []
         for detection in self:

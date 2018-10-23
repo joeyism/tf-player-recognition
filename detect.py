@@ -36,13 +36,9 @@ def detect_images(images, use_same_colour = True, BATCH_SIZE = 16, threshold = 0
 
     N = len(frame_masks)
     for i, masks in tqdm(enumerate(frame_masks), desc="Drawing Ellipses and Lines"):
-        for mask in masks:
-            mask.colour = utils.get_colours_from_image_hist(mask.upper_half_np)
-            mask.boundary_index = int(utils.get_boundary_num(mask.colour))
-
-        if i < len(frames):
-            utils.draw_ellipses_around_masks(frames[i], masks)
-            utils.draw_lines_between_players(frames[i], masks)
+        if i >= len(frames):
+            continue
+        apply_masks_to_image_np(frames[i], masks)
 
     return frames
 
@@ -50,16 +46,22 @@ def detect_image(image, threshold = 0.9, use_same_colour = True):
     old_image = image.copy()
     old_image_np = utils.load_image_into_numpy_array(old_image)
     masks = mask_rcnn.detect_people(old_image_np, threshold = threshold)
+    old_image_np = apply_masks_to_image_np(old_image_np, masks)
+    return old_image_np
+
+def apply_masks_to_image_np(image_np, masks):
+    if len(masks) == 0:
+        return image_np
+
     for i, mask in tqdm(enumerate(masks), desc="Getting colours"):
         mask.colour = utils.get_colours_from_image_hist(mask.upper_half_np)
         mask.boundary_index = int(utils.get_boundary_num(mask.colour))
         mask.average_colour = utils.remove_background_and_average_colour(mask.masked_image_np)
 
-    masks = utils.classify_masks(masks)
-
-    utils.draw_classified_ellipses_around_masks(old_image_np, masks)
-
-    return old_image_np
+    masks = utils.classify_masks(masks, by="average_colour")
+    utils.draw_classified_ellipses_around_masks(image_np, masks)
+    utils.draw_lines_between_classified_players(image_np, masks)
+    return image_np
 
 
 

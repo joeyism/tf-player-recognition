@@ -68,7 +68,14 @@ class Masks(list):
                 result.append(mask)
         return Masks(result)
 
-    def distances(self):
+    def filter_classify(self, classify):
+        result = []
+        for detection in self:
+            if detection.classify == classify:
+                result.append(detection)
+        return Masks(result)
+
+    def distances(self, MAX_DISTANCE=300):
         n = len(self)
         result = []
 
@@ -76,13 +83,11 @@ class Masks(list):
             p1 = self[i].center
             for j in range(i+1, n):
                 p2 = self[j].center
-                distance = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+                distance = math.hypot(p2[0] - p1[0], 0.25*(p2[1] - p1[1]))
                 result.append([i, j, distance])
+        result = [val for val in result if val[2] <= MAX_DISTANCE]
         result.sort(key=itemgetter(2))
         return np.array(result)
-
-
-
 
 
 class MaskRCNN(object):

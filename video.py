@@ -20,9 +20,9 @@ reader = imageio.get_reader(filename, "ffmpeg")
 fps = reader.get_meta_data()['fps']
 N = len(reader) - 1
 
-writer = imageio.get_writer("output_" + filename, fps=fps)
+writer = imageio.get_writer("output/" + filename, fps=fps)
 
-new_frames = detect.detect_images(reader, BATCH_SIZE = 16, threshold = 0.98)
+new_frames = detect.detect_images(reader, BATCH_SIZE = 16, threshold = 0.9)
 for frame in tqdm(new_frames, "Writing frames"):
     writer.append_data(frame)
 
