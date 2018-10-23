@@ -50,7 +50,7 @@ classified_colours = {
         }
 
 
-def draw_lines_between_classified_players(image, players):
+def draw_lines_between_classified_players(image, players, by="drawn_colour"):
     no_classes = len(classified_colours)
     for i in range(no_classes):
         players_group = players.filter_classify(i)
@@ -58,18 +58,18 @@ def draw_lines_between_classified_players(image, players):
         distances = players_group.distances() 
         if len(distances) == 0:
             continue
-        distances = distances[:n-1]
-        image = draw_line_from_distances(image, players_group, distances, colour=classified_colours[players_group[0].classify])
+        #distances = distances[:n-1]
+        image = draw_line_from_distances(image, players_group, distances, colour=players_group[0].__dict__[by])
 
 
-def draw_classified_ellipses_around_masks(image, masks):
+def draw_classified_ellipses_around_masks(image, masks, by="drawn_colour"):
     image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
     draw = ImageDraw.Draw(image_pil)
     for mask in masks:
         (y0, x0, y1, x1) = mask.rois
         player_height = y1 - y0
         y0 = y1 - player_height*0.2
-        draw.ellipse([x0, y0, x1, y1], fill=classified_colours[mask.classify])
+        draw.ellipse([x0, y0, x1, y1], fill=mask.__dict__[by])
 
     np.copyto(image, np.array(image_pil))
 
@@ -89,7 +89,7 @@ def sort_by_lowest_translator(cluster_centers, n_clusters):
 
 def classify_masks(masks, by="average_colour"):
     colours = [mask.__dict__[by] for mask in masks]
-    n_clusters = 3 if len(masks)>=3 else len(masks)
+    n_clusters = 2 if len(masks)>=3 else len(masks)
 
     if n_clusters == 0:
         return masks
@@ -103,6 +103,7 @@ def classify_masks(masks, by="average_colour"):
     translator = sort_by_lowest_translator(kmeans.cluster_centers_, n_clusters)
     for i, mask in enumerate(masks):
         mask.classify = translator[kmeans.labels_[i]]
+        mask.drawn_colour = classified_colours[mask.classify]
 
     return masks
 

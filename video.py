@@ -10,6 +10,7 @@ from tqdm import *
 print("Start")
 
 start = time.time()
+BATCH_SIZE = 16
 
 filename = sys.argv[1]
 if not filename:
@@ -22,7 +23,7 @@ N = len(reader) - 1
 
 writer = imageio.get_writer("output/" + filename, fps=fps)
 
-new_frames = detect.detect_images(reader, BATCH_SIZE = 16, threshold = 0.9)
+new_frames = detect.detect_images(reader, BATCH_SIZE = BATCH_SIZE, threshold = 0.8)
 for frame in tqdm(new_frames, "Writing frames"):
     writer.append_data(frame)
 

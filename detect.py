@@ -3,6 +3,7 @@ from objects import Detections
 from functools import partial
 from timeme import time_here
 from mask import MaskRCNN
+from tqdm import *
 import tensorflow as tf
 import numpy as np
 import os
@@ -11,7 +12,7 @@ import utils
 import sys
 import multiprocessing as mp
 import time
-from tqdm import *
+import gc
 
 OUTPUT_FOLDER = "output"
 
@@ -32,6 +33,7 @@ def detect_images(images, use_same_colour = True, BATCH_SIZE = 16, threshold = 0
 
     frame_masks = mask_rcnn.detect_people_multiframes(frames, BATCH_SIZE = BATCH_SIZE, threshold = threshold)
 
+    gc.collect()
     print("Complete detection")
 
     N = len(frame_masks)
@@ -54,8 +56,8 @@ def apply_masks_to_image_np(image_np, masks):
         return image_np
 
     for i, mask in tqdm(enumerate(masks), desc="Getting colours"):
-        mask.colour = utils.get_colours_from_image_hist(mask.upper_half_np)
-        mask.boundary_index = int(utils.get_boundary_num(mask.colour))
+#        mask.colour = utils.get_colours_from_image_hist(mask.upper_half_np)
+#        mask.boundary_index = int(utils.get_boundary_num(mask.colour))
         mask.average_colour = utils.remove_background_and_average_colour(mask.masked_image_np)
 
     masks = utils.classify_masks(masks, by="average_colour")

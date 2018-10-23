@@ -2,13 +2,15 @@ from PIL import Image
 from operator import itemgetter
 from objects import Frames
 from tqdm import *
-import time
 import model as modellib
 import numpy as np
-import os
-import math
+import parallel
 import utils
+import time
+import math
 import coco
+import os
+import gc
 
 ROOT_DIR = os.getcwd()
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
@@ -75,7 +77,7 @@ class Masks(list):
                 result.append(detection)
         return Masks(result)
 
-    def distances(self, MAX_DISTANCE=300):
+    def distances(self, MAX_DISTANCE=200):
         n = len(self)
         result = []
 
@@ -130,26 +132,6 @@ class MaskRCNN(object):
                 masks.append(mask)
         return Masks(masks)
 
-    def __extract_mask_info__(self, r, image, threshold = 0.98):
-        masks = []
-        for i, class_id in enumerate(r["class_ids"]):
-            if class_id != 1:
-                continue
-            crop = r["rois"][i]
-            score = r["scores"][i]
-            this_mask = r["masks"][:, :, i:i+1]
-            subimage = np.multiply(this_mask,image)
-                                                                                     
-            mask = Mask(
-                class_id,
-                this_mask,
-                crop,
-                score,
-                Image.fromarray(subimage).crop((crop[1], crop[0], crop[3], crop[2]))
-            )                                                                               
-            if mask.score > threshold:
-                masks.append(mask)
-        return masks
 
     def detect_people_multiframes(self, images, BATCH_SIZE = 16, threshold = 0.98):
         print("Detect people multiframes")
@@ -174,12 +156,45 @@ class MaskRCNN(object):
             start = end
 
             results = self.model.detect(frames_batch)
+
+            #frame_masks = parallel.parallelize(zip(frames_batch, results), parallelize_mask)
             for j, r in enumerate(results):
-                masks = self.__extract_mask_info__(r, frames_batch[j], threshold = threshold)
+                masks = __extract_mask_info__(r, frames_batch[j], threshold = threshold)
                 frame_masks.append(Masks(masks))
+
+            if i%50 == 0:
+                gc.collect()
 
         print("Frame Masks: {}".format(len(frame_masks)))
 
         return frame_masks
+
+
+def parallelize_mask(inp):
+    frame, result = inp
+    masks = __extract_mask_info__(result, frame, threshold = 0.9)
+    return Masks(masks)
+
+
+def __extract_mask_info__(r, image, threshold = 0.98):
+    masks = []
+    for i, class_id in enumerate(r["class_ids"]):
+        if class_id != 1:
+            continue
+        crop = r["rois"][i]
+        score = r["scores"][i]
+        this_mask = r["masks"][:, :, i:i+1]
+        subimage = np.multiply(this_mask,image)
+                                                                                 
+        mask = Mask(
+            class_id,
+            this_mask,
+            crop,
+            score,
+            Image.fromarray(subimage).crop((crop[1], crop[0], crop[3], crop[2]))
+        )                                                                               
+        if mask.score > threshold:
+            masks.append(mask)
+    return masks
 
 

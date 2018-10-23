@@ -4,3 +4,4 @@ output/*
 output_*
 vgg/vgg16.npy
 mask_rcnn_coco.h5
+sports_videos
